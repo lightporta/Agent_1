@@ -5,6 +5,7 @@ import tempfile
 import threading
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 
 from game_npc.domain import DomainError, GameService, GameStateError
@@ -107,7 +108,7 @@ class GameServiceTests(unittest.TestCase):
         self.assertTrue(all(task["player_id"] == "1002" for task in other.player_tasks()))
         # A task belonging only to the other player remains inaccessible even
         # if its identifier is known to this player.
-        with sqlite3.connect(self.db_path) as connection:
+        with closing(sqlite3.connect(self.db_path)) as connection, connection:
             connection.execute(
                 """INSERT INTO tasks
                    (player_id, task_id, name, description, status, progress,

@@ -357,7 +357,9 @@ class KnowledgeBase:
 
     def _embed(self, texts: list[str]) -> list[list[float]]:
         if not self.api_key:
-            raise KnowledgeBaseError("向量检索需要 API 密钥，请配置 DASHSCOPE_API_KEY。")
+            raise KnowledgeBaseError(
+                "向量检索需要 API 密钥，请配置 GAME_NPC_API_KEY 或当前提供商对应密钥。"
+            )
         try:
             openai = importlib.import_module("openai")
         except ImportError as exc:

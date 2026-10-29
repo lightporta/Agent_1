@@ -25,7 +25,7 @@ class UiTests(unittest.TestCase):
                 "GAME_NPC_DATA_DIR": str(data),
                 "GAME_NPC_MODE": "demo",
                 "GAME_NPC_RETRIEVAL": "local",
-                "DASHSCOPE_API_KEY": "",
+                "GAME_NPC_API_KEY": "",
             },
         )
         self.env.start()
@@ -58,7 +58,7 @@ class UiTests(unittest.TestCase):
         self.assertTrue(app.session_state["conversation"].knowledge.status()["ready"])
         app.selectbox[0].set_value("live").run()
         self.assertTrue(app.chat_input[0].disabled)
-        self.assertTrue(any("DASHSCOPE_API_KEY" in item.value for item in app.warning))
+        self.assertTrue(any("GAME_NPC_API_KEY" in item.value for item in app.warning))
         self.assertFalse(app.exception)
 
     def test_switch_npc_and_external_json_restore_keep_editor_consistent(self):

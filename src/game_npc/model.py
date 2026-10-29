@@ -1,4 +1,4 @@
-"""Small, lazy OpenAI-compatible adapter for the online NPC provider."""
+"""Small, lazy OpenAI-compatible adapter for any configured chat provider."""
 
 from dataclasses import dataclass, field
 from typing import Any

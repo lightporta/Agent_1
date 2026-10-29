@@ -1,0 +1,17 @@
+{
+  "world_id": "minecraft",
+  "title": "Minecraft 风格方块世界（演示框）",
+  "setting_name": "方块大陆与村庄",
+  "summary": "演示村民、商贩等 NPC 在沙盒世界中的交流。交易表、生物群系细节由宿主知识库提供；本包只含原创演示骨架。",
+  "regions": ["村庄广场", "铁匠铺门口", "农田小路", "森林边缘"],
+  "tone": "直白、生活化，少用华丽辞藻；交易条件要说清楚。",
+  "genre": "sandbox",
+  "lore_guidelines": [
+    "交易与职业只引用宿主资料",
+    "不假装能真正修改方块或背包",
+    "危险（僵尸、夜间）来自可信情境"
+  ],
+  "knowledge_dir": "knowledge",
+  "default_npc": "village_trader",
+  "source_policy": "由宿主导入 wiki 摘要或自建资料；程序不自动联网抓取。"
+}

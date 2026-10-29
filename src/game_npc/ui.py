@@ -14,11 +14,14 @@ def main():
 
     st.set_page_config(page_title="NPC 对话实验室", page_icon="💬", layout="wide")
     st.title("NPC 对话实验室")
-    st.caption("中文角色对话 · 可信任务状态 · 带来源的知识检索")
+    st.caption("独特 NPC 思维链 · 可切换游戏世界 · 多模型 OpenAI 兼容接入")
     try:
         initial = Settings.from_env()
         external_profile = load_profile(initial.npc_profile_path)
         presets = builtin_profiles()
+        from game_npc.world import builtin_worlds
+
+        worlds = builtin_worlds()
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
@@ -28,9 +31,20 @@ def main():
             "模型模式",
             ["demo", "live"],
             index=0 if initial.mode == "demo" else 1,
-            format_func=lambda x: "本地演示（无需密钥）" if x == "demo" else "在线千问（需要密钥）",
+            format_func=lambda x: (
+                "本地演示（无需密钥）" if x == "demo" else f"在线模型（{initial.provider_label()}）"
+            ),
         )
         player = st.selectbox("演示玩家", ["1001", "1002"])
+        world_key = st.selectbox(
+            "游戏世界包",
+            ["none", *worlds],
+            format_func=lambda key: (
+                "不使用世界包（默认溪谷村知识）"
+                if key == "none"
+                else f"{worlds[key].title} · {worlds[key].setting_name}"
+            ),
+        )
         preset_key = st.selectbox(
             "NPC 角色",
             ["external", *presets],
@@ -108,11 +122,21 @@ def main():
                 st.session_state.conversation.clear()
         st.caption("任务与金币均为本地演示数据。切换玩家会新建对话，任务状态保留。")
     settings = replace(initial, mode=selected_mode)
-    identity = (settings, player, profile.fingerprint())
+    selected_world = None if world_key == "none" else worlds[world_key]
+    identity = (
+        settings,
+        player,
+        profile.fingerprint(),
+        None if selected_world is None else selected_world.world_id,
+    )
     if st.session_state.get("identity") != identity:
         try:
             st.session_state.conversation = build_conversation(
-                settings, player, profile=profile, context=context
+                settings,
+                player,
+                profile=profile,
+                context=context,
+                world=selected_world,
             )
             st.session_state.identity = identity
         except (ValueError, RuntimeError, OSError) as exc:
@@ -120,10 +144,14 @@ def main():
             st.stop()
     conversation = st.session_state.conversation
     conversation.set_context(context)
+    conversation.set_world(selected_world)
     if settings.mode == "demo":
         st.info("本地演示使用规则回复和关键词检索，可验证任务流程；自然语言能力需切换在线模式。")
     elif not settings.api_key:
-        st.warning("请在启动终端设置 DASHSCOPE_API_KEY 后重启；当前在线模式尚未连接。")
+        st.warning(
+            "请设置 GAME_NPC_API_KEY（或当前提供商密钥）后重启；"
+            f"当前提供商：{settings.provider_label()}。"
+        )
     with st.sidebar:
         st.subheader("知识库")
         try:
@@ -147,10 +175,14 @@ def main():
         st.subheader("当前 NPC", anchor="npc-profile")
         st.text(f"{profile.name} · {profile.profession}")
         st.text(f"所在区域：{context.region or profile.region}")
+        if selected_world is not None:
+            st.caption(f"世界：{selected_world.setting_name}")
         st.caption("性格：" + "、".join(profile.personality))
         st.caption("目标：" + " / ".join(profile.goals))
         st.caption("价值偏好：" + " > ".join(profile.values))
-        st.caption("检查顺序：" + " → ".join(CHECK_LABELS[item] for item in profile.thinking_order))
+        st.caption(
+            "独特思维链顺序：" + " → ".join(CHECK_LABELS[item] for item in profile.thinking_order)
+        )
         st.subheader("演示任务面板")
         try:
             info = conversation.game.player_info()

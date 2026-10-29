@@ -105,7 +105,7 @@ class ModelTests(unittest.TestCase):
         self.assertIs(error.exception.__cause__, failure)
 
     def test_key_is_required_even_for_injected_client(self):
-        with self.assertRaisesRegex(ValueError, "DASHSCOPE_API_KEY"):
+        with self.assertRaisesRegex(ValueError, "GAME_NPC_API_KEY"):
             OpenAIModel(Settings(), FakeClient(response()))
 
     def test_missing_sdk_has_install_instruction(self):

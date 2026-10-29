@@ -2,6 +2,7 @@ import os
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -192,7 +193,7 @@ class KnowledgeTests(unittest.TestCase):
     def test_missing_database_tables_are_actionable_for_all_public_operations(self):
         self.write("task.txt", "任务金币")
         self.knowledge.ingest()
-        with sqlite3.connect(self.knowledge.db_path) as connection:
+        with closing(sqlite3.connect(self.knowledge.db_path)) as connection, connection:
             connection.execute("DROP TABLE metadata")
         for operation in (
             self.knowledge.status,

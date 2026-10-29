@@ -1,0 +1,16 @@
+{
+  "world_id": "demo_valley",
+  "title": "溪谷村演示世界",
+  "setting_name": "溪谷村与周边林地",
+  "summary": "本地演示用中世纪村庄设定。用于验证任务、检索与角色决策，不绑定任何商业游戏 IP。",
+  "regions": ["溪谷村·议事木屋", "溪谷村·北门哨所", "溪谷村·南街集市", "黑松林外侧"],
+  "tone": "朴实、口语化，优先给出可执行的下一步。",
+  "genre": "fantasy_village",
+  "lore_guidelines": [
+    "只使用安装包知识库与宿主补充资料",
+    "不编造村庄外的官方剧情"
+  ],
+  "knowledge_dir": null,
+  "default_npc": null,
+  "source_policy": "知识与角色资料由宿主或安装包显式提供；程序不会自动抓取网页。"
+}

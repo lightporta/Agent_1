@@ -1,0 +1,17 @@
+{
+  "world_id": "genshin",
+  "title": "原神风格开放世界（演示框）",
+  "setting_name": "提瓦特大陆风格开放世界",
+  "summary": "演示把 NPC 放进开放世界城镇与旅人互动语境。正式角色、剧情与地名细节须由宿主提供授权资料；本包只提供原创演示骨架与商贩示例。",
+  "regions": ["蒙德城门口", "璃月港码头", "须弥雨林路边", "枫丹廷广场"],
+  "tone": "礼貌、有地方口音感但不堆砌专有名词；先确认旅人需要什么。",
+  "genre": "open_world_adventure",
+  "lore_guidelines": [
+    "只使用宿主知识库中的地名、商品与传闻",
+    "不编造官方角色未给出的私密剧情",
+    "商贩可介绍货物与方向，不能发放真实游戏道具"
+  ],
+  "knowledge_dir": "knowledge",
+  "default_npc": "street_vendor",
+  "source_policy": "禁止自动抓取 wiki 或官网；宿主可自行整理公开摘要或授权文本后导入。"
+}

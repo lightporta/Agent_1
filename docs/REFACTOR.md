@@ -2,6 +2,22 @@
 
 分析基线：`main` 的 `cd156599cb4f802e5067406f2c8ea71d3775011b`。本地重构分支：`refactor/npc-foundation`。日期：2026-10-29。
 
+## 0.4.0 增补（多模型 · 世界包 · 双语文档 · Windows CI）
+
+在 0.3.0 认知外接之上：
+
+- `providers.py`：OpenAI 兼容提供商预设（DeepSeek / Kimi / OpenAI / Grok / GLM / OpenRouter·Claude / Qwen / custom）；统一 `GAME_NPC_API_KEY`。
+- `world.py` + `assets/worlds/*`：游戏背景框（王者 / 原神 / Minecraft / 大世界 / 溪谷村）；换设定不换 `CognitiveEngine`。
+- 文档拆为中英文：`README.md` / `README.en.md`，`NPC_COGNITION*.md`，`PROVIDERS*.md`。
+- Windows `core (windows-latest, 3.12)` CI 修复（对照 run `40814958584`）：
+  - `Settings.from_env` 不再把 `Path.home()` 当作 `os.getenv` 的默认实参（否则即使已设置 `GAME_NPC_STATE_DIR` 也会在清空 `USERPROFILE` 时崩溃）。
+  - CLI 在入口把 stdout/stderr 重配为 UTF-8，并用 `_emit` 在 legacy 编码下回退写 UTF-8 字节。
+  - 测试里手动 `sqlite3.connect` 改为 `closing(...)`，避免临时目录清理触发 `WinError 32`。
+  - workflow 增加 `PYTHONUTF8` / `PYTHONIOENCODING`；新增 `tests/test_windows_compat.py` 回归。
+- 验证：本机 `unittest` 全量通过（含世界包、提供商与 Windows 兼容用例）。真实各厂商密钥与远端 Windows runner 需推送后确认。
+
+---
+
 ## 原项目的主要问题
 
 | 问题 | 当前代码与数据证据 | 改造结果 |

@@ -1,0 +1,13 @@
+{
+  "npc_id": "caravan_broker",
+  "name": "驿站掮客柯尔",
+  "personality": ["世故", "谨慎", "消息灵通"],
+  "profession": "边境驿站掮客",
+  "region": "边境驿站",
+  "background": "在大世界边境撮合商队与旅人的演示角色，习惯先问目的地与风险承受能力。",
+  "speech_style": "沉稳、带一点讨价还价的余地；重要条件会重复确认。",
+  "goals": ["撮合可靠交易", "避开已知危险路线", "收集可验证的路况"],
+  "values": ["互利", "谨慎", "信誉"],
+  "decision_style": {"caution": 80, "empathy": 50, "duty": 55, "curiosity": 70},
+  "thinking_order": ["caution", "curiosity", "duty", "empathy"]
+}

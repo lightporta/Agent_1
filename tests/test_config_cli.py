@@ -33,7 +33,7 @@ class ConfigCliTests(unittest.TestCase):
                 {
                     "GAME_NPC_STATE_DIR": temporary,
                     "GAME_NPC_MODE": "live",
-                    "DASHSCOPE_API_KEY": "secret-test-value",
+                    "GAME_NPC_API_KEY": "secret-test-value",
                 },
                 clear=True,
             ),
@@ -42,6 +42,16 @@ class ConfigCliTests(unittest.TestCase):
             self.assertEqual(settings.state_dir, Path(temporary).resolve())
             self.assertNotIn("secret-test-value", repr(settings))
             settings.require_online()
+
+    def test_provider_presets_fill_model_and_base_url(self):
+        settings = Settings(provider="deepseek", api_key="x")
+        self.assertEqual(settings.provider, "deepseek")
+        self.assertEqual(settings.model, "deepseek-chat")
+        self.assertIn("deepseek.com", settings.base_url)
+        openai = Settings(provider="openai", model="gpt-4o", api_key="x")
+        self.assertEqual(openai.model, "gpt-4o")
+        with self.assertRaises(ValueError):
+            Settings(provider="custom", api_key="x")
 
     def test_prompts_are_packaged(self):
         self.assertIn("报告", load_prompt("report"))
@@ -73,7 +83,7 @@ class ConfigCliTests(unittest.TestCase):
             with redirect_stdout(output):
                 result = main(["--state-dir", temporary, "--mode", "live", "doctor"])
             self.assertEqual(result, 1)
-            self.assertIn("DASHSCOPE_API_KEY", json.loads(output.getvalue())["problems"][0])
+            self.assertIn("GAME_NPC_API_KEY", json.loads(output.getvalue())["problems"][0])
 
     def test_bad_configuration_is_concise_nonzero_error(self):
         with (
