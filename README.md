@@ -2,6 +2,8 @@
 
 中文游戏 NPC Agent 示例：角色对话、任务进度、幂等奖励、带来源的知识检索。Python 3.11+，建议使用 Python 3.12。
 
+0.3.0 支持外部设定 NPC 姓名、性格、职业、区域及个人检查顺序。三种内置角色会对同一请求采用不同策略；界面支持编辑角色 JSON 和查看六阶段决策摘要。配置与游戏宿主接入示例见 [NPC 角色与决策流程](docs/NPC_COGNITION.md)。
+
 默认是**无需密钥、无需模型服务的本地演示**。演示使用规则回复和中文 BM25 检索，适合验证安装与任务流程。在线模式使用通义千问的 OpenAI 兼容工具调用；可选 Chroma 语义检索。玩家与金币始终来自本地演示数据库，尚未接入真实游戏服务器。
 
 ## 安装与启动
@@ -74,6 +76,7 @@ PowerShell 设置环境变量使用 `$env:DASHSCOPE_API_KEY="你的密钥"`、`$
 | `DASHSCOPE_API_KEY` | 仅在线聊天或向量模式需要 |
 | `GAME_NPC_STATE_DIR` | 默认 `~/.game-npc`，存放演示状态和索引 |
 | `GAME_NPC_DATA_DIR` | 默认安装包内的 NPC 资料目录；可设置为自己的绝对路径 |
+| `GAME_NPC_PROFILE_PATH` | 外部 NPC JSON 档案；默认村长林守溪 |
 
 CLI 的 `--state-dir` 优先于环境变量。显式使用相同绝对路径即可从任意工作目录访问同一状态。不要把生成的 SQLite、Chroma 数据、密钥或运行日志提交到 Git。
 
@@ -95,6 +98,8 @@ game-npc --state-dir .runtime ingest
 ```text
 src/game_npc/
   config.py       环境配置校验与安装包资源定位
+  persona.py      外部 NPC 档案、个人检查顺序与可信世界情境
+  cognition.py    角色决策评分、六阶段流程与结构化摘要
   bootstrap.py    显式组装服务，无导入时模型初始化
   domain.py       玩家绑定、任务规则、SQLite 事务与奖励去重
   knowledge.py    文件同步、中文 BM25、可选 Chroma、资料来源

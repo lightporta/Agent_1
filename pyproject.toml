@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "game-npc-agent"
-version = "0.2.0"
+version = "0.3.0"
 description = "中文 NPC 对话、任务状态与可追溯知识检索示例"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,7 +24,7 @@ game-npc = "game_npc.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-game_npc = ["assets/prompts/*.txt", "assets/knowledge/*.txt", "assets/knowledge/*.pdf"]
+game_npc = ["assets/prompts/*.txt", "assets/knowledge/*.txt", "assets/knowledge/*.pdf", "assets/npcs/*.json"]
 
 [tool.ruff]
 target-version = "py311"

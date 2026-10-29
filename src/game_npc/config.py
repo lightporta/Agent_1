@@ -14,6 +14,7 @@ class Settings:
     retrieval: str = "local"
     state_dir: Path = field(default_factory=lambda: Path.home() / ".game-npc")
     data_dir: Path = ASSETS / "knowledge"
+    npc_profile_path: Path | None = None
     model: str = "qwen3-max"
     base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     api_key: str = field(default="", repr=False)
@@ -24,6 +25,10 @@ class Settings:
     def __post_init__(self):
         object.__setattr__(self, "state_dir", Path(self.state_dir).expanduser().resolve())
         object.__setattr__(self, "data_dir", Path(self.data_dir).expanduser().resolve())
+        if self.npc_profile_path is not None:
+            object.__setattr__(
+                self, "npc_profile_path", Path(self.npc_profile_path).expanduser().resolve()
+            )
         if self.mode not in {"demo", "live"}:
             raise ValueError("GAME_NPC_MODE 只能是 demo 或 live")
         if self.retrieval not in {"local", "vector"}:
@@ -45,6 +50,9 @@ class Settings:
             retrieval=os.getenv("GAME_NPC_RETRIEVAL", "local"),
             state_dir=Path(os.getenv("GAME_NPC_STATE_DIR", str(Path.home() / ".game-npc"))),
             data_dir=Path(os.getenv("GAME_NPC_DATA_DIR", str(ASSETS / "knowledge"))),
+            npc_profile_path=Path(os.environ["GAME_NPC_PROFILE_PATH"])
+            if os.getenv("GAME_NPC_PROFILE_PATH")
+            else None,
             model=os.getenv("GAME_NPC_MODEL", "qwen3-max"),
             base_url=os.getenv("GAME_NPC_BASE_URL", cls.base_url),
             api_key=os.getenv("DASHSCOPE_API_KEY", ""),

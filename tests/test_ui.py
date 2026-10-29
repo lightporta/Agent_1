@@ -1,6 +1,7 @@
 """Optional Streamlit integration tests; core-only installations skip this file."""
 
 import importlib.util
+import json
 import os
 import tempfile
 import unittest
@@ -58,6 +59,46 @@ class UiTests(unittest.TestCase):
         app.selectbox[0].set_value("live").run()
         self.assertTrue(app.chat_input[0].disabled)
         self.assertTrue(any("DASHSCOPE_API_KEY" in item.value for item in app.warning))
+        self.assertFalse(app.exception)
+
+    def test_switch_npc_and_external_json_restore_keep_editor_consistent(self):
+        app = self.app.run()
+        app.chat_input[0].set_value("早上好").run()
+        self.assertTrue(app.session_state["conversation"].history)
+        role_selector = next(widget for widget in app.selectbox if widget.label == "NPC 角色")
+        role_selector.set_value("guard").run()
+        self.assertEqual(app.session_state["conversation"].profile.name, "沈砺")
+        self.assertEqual(app.session_state["conversation"].history, [])
+        editor = next(widget for widget in app.text_area if widget.label == "角色 JSON")
+        profile = json.loads(editor.value)
+        profile["name"] = "外部测试角色"
+        profile["region"] = "外部地图·城门"
+        editor.set_value(json.dumps(profile, ensure_ascii=False))
+        next(button for button in app.button if button.label == "应用角色档案").click().run()
+        self.assertEqual(app.session_state["conversation"].profile.name, "外部测试角色")
+        self.assertEqual(app.session_state["conversation"].context.region, "外部地图·城门")
+        app.chat_input[0].set_value("你的性格是什么？").run()
+        self.assertIn("外部测试角色", app.session_state["conversation"].history[-1]["content"])
+        self.assertEqual(app.session_state["conversation"].last_decision["intent"], "identity")
+        next(button for button in app.button if button.label == "恢复所选档案").click().run()
+        self.assertEqual(app.session_state["conversation"].profile.name, "沈砺")
+        editor = next(widget for widget in app.text_area if widget.label == "角色 JSON")
+        self.assertEqual(json.loads(editor.value)["name"], "沈砺")
+        self.assertEqual(app.session_state["conversation"].history, [])
+        self.assertFalse(app.exception)
+
+    def test_context_changes_preserve_role_history_and_alter_decision(self):
+        app = self.app.run()
+        app.chat_input[0].set_value("我想去城外冒险，有什么建议？").run()
+        self.assertEqual(app.session_state["conversation"].last_decision["strategy"], "guide")
+        region = next(widget for widget in app.text_input if widget.label == "当前区域")
+        region.set_value("外部边境").run()
+        next(widget for widget in app.slider if widget.label == "区域危险度").set_value(95).run()
+        self.assertEqual(len(app.session_state["conversation"].history), 2)
+        app.chat_input[0].set_value("我想去城外冒险，有什么建议？").run()
+        self.assertEqual(app.session_state["conversation"].last_decision["strategy"], "protect")
+        self.assertEqual(app.session_state["conversation"].last_decision["region"], "外部边境")
+        self.assertEqual(len(app.session_state["conversation"].history), 4)
         self.assertFalse(app.exception)
 
 
