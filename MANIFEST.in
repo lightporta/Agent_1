@@ -1,0 +1,3 @@
+include app.py uv.lock .env.example
+recursive-include docs *.md
+recursive-include .github *.yml
