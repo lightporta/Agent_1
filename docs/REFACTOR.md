@@ -1,0 +1,75 @@
+# Agent_1 重构分析与验证
+
+分析基线：`main` 的 `cd156599cb4f802e5067406f2c8ea71d3775011b`。本地重构分支：`refactor/npc-foundation`。日期：2026-10-29。
+
+## 0.4.0 增补（多模型 · 世界包 · 双语文档 · Windows CI）
+
+在 0.3.0 认知外接之上：
+
+- `providers.py`：OpenAI 兼容提供商预设（DeepSeek / Kimi / OpenAI / Grok / GLM / OpenRouter·Claude / Qwen / custom）；统一 `GAME_NPC_API_KEY`。
+- `world.py` + `assets/worlds/*`：游戏背景框（王者 / 原神 / Minecraft / 大世界 / 溪谷村）；换设定不换 `CognitiveEngine`。
+- 文档拆为中英文：`README.md` / `README.en.md`，`NPC_COGNITION*.md`，`PROVIDERS*.md`。
+- Windows `core (windows-latest, 3.12)` CI 修复（对照 run `40814958584`）：
+  - `Settings.from_env` 不再把 `Path.home()` 当作 `os.getenv` 的默认实参（否则即使已设置 `GAME_NPC_STATE_DIR` 也会在清空 `USERPROFILE` 时崩溃）。
+  - CLI 在入口把 stdout/stderr 重配为 UTF-8，并用 `_emit` 在 legacy 编码下回退写 UTF-8 字节。
+  - 测试里手动 `sqlite3.connect` 改为 `closing(...)`，避免临时目录清理触发 `WinError 32`。
+  - workflow 增加 `PYTHONUTF8` / `PYTHONIOENCODING`；新增 `tests/test_windows_compat.py` 回归。
+- 验证：本机 `unittest` 全量通过（含世界包、提供商与 Windows 兼容用例）。真实各厂商密钥与远端 Windows runner 需推送后确认。
+
+---
+
+## 原项目的主要问题
+
+| 问题 | 当前代码与数据证据 | 改造结果 |
+| --- | --- | --- |
+| 无法按统一方式安装 | 没有 pyproject / requirements；`pip install .` 报缺少构建配置；直接启动缺 streamlit；README 安装包名也不完整 | 标准 Python 项目、可选依赖、锁文件、CLI 和 wheel |
+| 知识库内容与位置失真 | 根目录和 agent 下的 Chroma 均为空；rag 下 326 条仍为扫地机器人资料，来源为旧 Windows 路径；6 个 MD5 均与当前资料不符 | 保留原始 4 份 NPC 文档，删除旧运行产物；统一绝对状态目录，显式重建 |
+| 导入就要求外部服务 | model.factory 全局创建聊天与嵌入模型；工具模块立即构造 RAG 与数据库 | 配置、模型、检索与界面解耦；仅使用在线能力时加载 SDK |
+| 玩家和任务为假数据 | get_player_info 随机 ID；get_player_task 随机月份；更新只返回成功字符串 | 固定演示身份与 SQLite 持久状态，代码校验任务转换 |
+| 发奖功能语义错误 | 忽略 task_id，返回旧 CSV 统计；没有完成校验、余额更新或去重 | 任务完成校验、当前玩家绑定、事务发放、重复领取幂等 |
+| 多轮与显示不一致 | UI 保存历史，但每次只把当前问题传给 Agent；values 状态流混入玩家输入和工具消息；最后只保存最后一帧，空流越界 | 成功对话历史统一维护，仅输出最终答复，失败不伪造历史 |
+| 中间件无法触发 | 监听 fill_context_for_report，而实际工具名为 fill_context_for_dialogue，工具本身也没有上下文效果 | 删除空操作工具和失效动态切换，报告通过显式只读工具集运行 |
+| 工具预算依赖提示词 | “最多 5 次调用”没有运行层约束 | 共享调用预算、批量超额拒绝、参数与工具名验证 |
+| 索引只能追加 | 全局 MD5 与具体 collection 不绑定；修改和删除不会移除旧片段；错误被日志吞掉 | 文件 SHA-256 manifest，原子同步增改删，异常明确失败 |
+| 发布混入运行数据 | 提交 pycache、SQLite、二进制向量文件、历史日志 | 删除旧产物并添加忽略规则；安装包只携带代码与必要资料 |
+
+## 结构选择
+
+保留 Python 与 Streamlit，模型默认仍为 `qwen3-max`。用 OpenAI 兼容 SDK 替代多层 LangChain 包装，减少间接依赖和版本耦合。在线工具协议参考 [OpenAI 官方 function calling 文档](https://developers.openai.com/api/docs/guides/function-calling)，工具参数由程序验证。
+
+本地检索提供中文字符、二元词与拉丁词 BM25，主要用于无密钥运行与小型规则资料检索；它不是语义模型。Chroma 与在线 embeddings 作为可选能力保留，两种模式切换时要求重建索引。检索不再嵌套调用聊天模型总结，直接返回原文、来源与分数。
+
+领域层是明确标注的演示游戏服务。`record_progress` 只供演示按钮或未来可信后端事件使用，不能成为模型工具。真实游戏接入需要认证、服务器任务规则和事件来源，这一轮没有将演示状态宣称为真实接入。
+
+在线 UI 改为工具循环结束后展示完整最终回答，以消除原有状态快照伪流式行为；暂不实现 token 流。模型前置文本和工具结果不直接进入助手消息。报告通过显式模式启用，只有读取工具，不依赖自然语言触发中间件。
+
+损坏数据库会保留原文件并提供错误提示，程序不会自动重置玩家资产或覆盖索引。默认数据库位于用户状态目录，启动时可通过 `--state-dir` 指定独立目录。
+
+## 验证记录
+
+实际环境：macOS arm64，Python 3.12.14；另使用 Python 3.14.5 检查纯核心路径。
+
+| 验证项 | 结果 |
+| --- | --- |
+| 完整离线回归 | 76 项全部通过；包括 2 项 Streamlit AppTest 与 1 项真实本地 Chroma 驱动测试 |
+| Python 3.14 核心回归 | 73 项通过，3 项因未安装 UI / vector 可选依赖跳过 |
+| 业务规则 | 固定身份、跨玩家隔离、非法状态拒绝、可信进度、持久化、8 线程同时领奖只发一次 |
+| Agent | 跨轮历史、工具前置文本过滤、空响应、批量预算、非法参数、只读报告、否定语句不触发演示写操作 |
+| 知识同步 | 只读状态诊断、首次入库、幂等、增改删、配置变化、损坏库错误与失败回滚 |
+| 本地 Chroma 1.5.9 | 使用合成向量实际验证持久化、搜索、重建、旧 collection 清理；没有请求真实 embeddings |
+| 依赖与静态检查 | pip check、Ruff 检查与格式检查通过；uv.lock 解析 108 个包，锁文件一致性检查通过 |
+| 安装与打包 | editable 安装、sdist、wheel 均成功；wheel 内含 4 份知识资料、2 份提示词，无缓存或数据库 |
+| 干净 wheel 环境 | 仅安装 wheel + pypdf；在源码目录外运行 doctor、ingest、chat 成功，生成 42 个分片 |
+| 全新锁定环境 | 按 uv.lock 安装 ui / live / pdf / dev，75 项通过，1 项可选向量驱动测试按预期跳过；Ruff 检查通过 |
+| 界面 | AppTest 验证聊天、领奖、报告、切换玩家、索引和缺密钥提示；本机服务实际启动，并在浏览器查看窄窗口布局 |
+
+完整命令见 README。测试中的模型传输使用注入的 fake client；Chroma 驱动测试用合成向量，仅说明本地存储与检索接口正常。
+
+原有 4 份 NPC 文档与基线版本逐字节 SHA-256 校验一致，仅移动到安装包资源目录；旧知识数据库、缓存和 CSV 没有迁入新运行目录。
+
+## 验证边界
+
+- 在线模型与真实 embeddings 需要账户密钥，本轮不读取或使用现有私人密钥。
+- 本地检索流程检查不等同于 NPC 对话质量或模型工具选择准确率评测。
+- 本地任务是示例数据，不代表已接入真实游戏系统。
+- CI 文件需要推送后由 GitHub Actions 执行；本轮没有向 GitHub 推送或发起 PR。

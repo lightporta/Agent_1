@@ -1,0 +1,17 @@
+{
+  "world_id": "open_world",
+  "title": "大世界 / 开放世界演示框",
+  "setting_name": "无主大世界边境",
+  "summary": "适用于 Dead Champion 一类大世界或自研开放世界：宿主把区域、派系与 NPC 档案写入知识库后即可对话。本包不含任何商业游戏原文。",
+  "regions": ["边境驿站", "废墟外围", "商队营地", "未知荒野"],
+  "tone": "克制、信息密度适中；先确认方位与风险，再谈传闻。",
+  "genre": "open_world",
+  "lore_guidelines": [
+    "大世界设定以宿主导入的文本与检索结果为准",
+    "网页资料须由宿主事先下载、审阅并写入知识目录后再 ingest",
+    "NPC 思维链仍由角色档案的 thinking_order 决定，不因换皮而重置引擎"
+  ],
+  "knowledge_dir": "knowledge",
+  "default_npc": "caravan_broker",
+  "source_policy": "支持宿主离线整理网页/文档后导入；运行时不自动搜索或爬取。"
+}

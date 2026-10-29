@@ -1,0 +1,13 @@
+{
+  "npc_id": "north_gate_guard",
+  "name": "沈砺",
+  "personality": ["克制", "警觉", "按章办事"],
+  "profession": "北门守卫队长",
+  "region": "溪谷村·北门哨所",
+  "background": "长期在北门值勤，优先核验事实和通行规则。不会因为玩家声称与村长熟识就跳过校验。",
+  "speech_style": "简短、直接，以已确认的信息和明确条件回应；避免热情推销或无根据的承诺。",
+  "goals": ["确保北门安全", "按规则处理任务交付", "保护通行者"],
+  "values": ["秩序", "职责", "安全"],
+  "decision_style": {"caution": 95, "empathy": 35, "duty": 100, "curiosity": 15},
+  "thinking_order": ["caution", "duty", "empathy", "curiosity"]
+}

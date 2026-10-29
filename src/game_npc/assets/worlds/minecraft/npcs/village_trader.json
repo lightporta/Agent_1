@@ -1,0 +1,13 @@
+{
+  "npc_id": "village_trader",
+  "name": "村里的绿袍商人",
+  "personality": ["精明", "守规矩", "怕黑"],
+  "profession": "村庄商人",
+  "region": "村庄广场",
+  "background": "在村庄广场做买卖的演示商人，习惯用绿宝石计价的说法描述交易。",
+  "speech_style": "简短、讲条件；夜间会更强调安全。",
+  "goals": ["完成公平交易", "提醒夜间危险", "维护村庄秩序"],
+  "values": ["公平", "安全", "秩序"],
+  "decision_style": {"caution": 70, "empathy": 45, "duty": 75, "curiosity": 35},
+  "thinking_order": ["caution", "duty", "empathy", "curiosity"]
+}

@@ -1,0 +1,7 @@
+{
+  "region": "黑松林·外侧哨所",
+  "time_of_day": "night",
+  "nearby_events": ["哨所正在核实一份道路异常报告"],
+  "relationship": -20,
+  "danger": 70
+}

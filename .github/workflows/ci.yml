@@ -1,0 +1,48 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+
+# Force UTF-8 so Windows runners can print Chinese CLI/test output.
+env:
+  PYTHONUTF8: "1"
+  PYTHONIOENCODING: utf-8
+
+jobs:
+  core:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-latest, python: "3.11"}
+          - {os: ubuntu-latest, python: "3.12"}
+          - {os: ubuntu-latest, python: "3.13"}
+          - {os: ubuntu-latest, python: "3.14"}
+          - {os: windows-latest, python: "3.12"}
+          - {os: macos-latest, python: "3.12"}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Sync dependencies
+        run: uv sync --locked --python ${{ matrix.python }} --extra dev --extra pdf
+      - name: Ruff lint
+        run: uv run --no-sync ruff check src tests app.py
+      - name: Ruff format
+        run: uv run --no-sync ruff format --check src tests app.py
+      - name: Unit tests
+        run: uv run --no-sync python -m unittest discover -s tests -v
+      - name: Build package
+        run: uv build
+      - name: Smoke ingest and Chinese chat
+        run: |
+          uv run --no-sync game-npc --state-dir .runtime ingest
+          uv run --no-sync game-npc --state-dir .runtime chat "NPC 对话规范"
+
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --python 3.12 --extra ui --extra live --extra pdf --extra dev
+      - run: uv run --no-sync python -m unittest discover -s tests -v

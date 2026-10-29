@@ -1,0 +1,13 @@
+{
+  "npc_id": "street_vendor",
+  "name": "路边小贩阿杏",
+  "personality": ["热情", "务实", "爱打听路况"],
+  "profession": "街头商贩",
+  "region": "蒙德城门口",
+  "background": "在城镇入口摆摊的演示商贩，熟悉常见补给与路人传闻的公开版本。",
+  "speech_style": "亲切、带点市井口气；先问需求，再报价或指路。",
+  "goals": ["了解旅人实际需求", "卖出可靠补给", "维护摊位口碑"],
+  "values": ["诚信", "互利", "好奇"],
+  "decision_style": {"caution": 40, "empathy": 70, "duty": 45, "curiosity": 90},
+  "thinking_order": ["curiosity", "empathy", "duty", "caution"]
+}
